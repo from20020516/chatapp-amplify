@@ -4,7 +4,14 @@ import { Amplify, Auth, Hub } from 'aws-amplify'
 import { CognitoHostedUIIdentityProvider } from '@aws-amplify/auth'
 import awsconfig from './src/aws-exports'
 
-Amplify.configure(awsconfig)
+Amplify.configure({
+  ...awsconfig,
+  oauth: {
+    ...awsconfig.oauth,
+    redirectSignIn: `${window.location.origin}/`,
+    redirectSignOut: `${window.location.origin}/`,
+  }
+})
 
 const App = () => {
   const [user, setUser] = useState<any>(null)
