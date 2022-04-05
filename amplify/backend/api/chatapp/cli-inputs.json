@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "serviceConfiguration": {
+    "apiName": "chatapp",
+    "serviceName": "AppSync",
+    "gqlSchemaPath": "/root/chatapp/amplify/backend/api/chatapp/schema.graphql",
+    "defaultAuthType": {
+      "mode": "API_KEY",
+      "expirationTime": 365,
+      "apiKeyExpirationDate": "2023-04-05T11:36:58.951Z",
+      "keyDescription": ""
+    },
+    "conflictResolution": {
+      "defaultResolutionStrategy": {
+        "type": "AUTOMERGE"
+      }
+    }
+  }
+}
