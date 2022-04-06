@@ -8,6 +8,7 @@ export const getTodo = /* GraphQL */ `
       id
       name
       description
+      isComplete
       createdAt
       updatedAt
       _version
@@ -27,6 +28,7 @@ export const listTodos = /* GraphQL */ `
         id
         name
         description
+        isComplete
         createdAt
         updatedAt
         _version
@@ -55,6 +57,7 @@ export const syncTodos = /* GraphQL */ `
         id
         name
         description
+        isComplete
         createdAt
         updatedAt
         _version

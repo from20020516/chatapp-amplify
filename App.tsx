@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react'
-import { Button, Text, View } from 'react-native'
+import { Button, StyleSheet, Platform, Text, View } from 'react-native'
 import { Amplify, Auth, Hub } from 'aws-amplify'
 import { CognitoHostedUIIdentityProvider } from '@aws-amplify/auth'
 import awsconfig from './src/aws-exports'
+import Home from './src/Home'
 
 Amplify.configure({
   ...awsconfig,
@@ -45,15 +46,38 @@ const App = () => {
   }
 
   return (
-    <View>
-      <Text>User: {user ? JSON.stringify(user.attributes) : 'None'}</Text>
+    <View style={styles.container}>
+      <View style={styles.headerContainer}>
+        <Text style={styles.headerTitle}>User: {user ? JSON.stringify(user.attributes) : 'None'}</Text>
+      </View>
       {user ? (
-        <Button title="Sign Out" onPress={() => Auth.signOut()} />
+        <>
+          <Home />
+          <Button title="Sign Out" onPress={() => Auth.signOut()} />
+        </>
       ) : (
         <Button title="Federated Sign In" onPress={() => Auth.federatedSignIn({ provider: CognitoHostedUIIdentityProvider.Google })} />
       )}
     </View>
   )
 }
+
+const styles = StyleSheet.create({
+  container: {
+    backgroundColor: '#fff',
+    flex: 1,
+  },
+  headerContainer: {
+    backgroundColor: '#4696ec',
+    paddingTop: Platform.OS === 'ios' ? 44 : 0,
+  },
+  headerTitle: {
+    color: '#fff',
+    fontSize: 20,
+    fontWeight: '600',
+    paddingVertical: 16,
+    textAlign: 'center',
+  },
+})
 
 export default App
