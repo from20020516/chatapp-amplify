@@ -9,7 +9,7 @@ import {
     View,
     Platform,
 } from 'react-native'
-import { DataStore } from 'aws-amplify'
+import { DataStore, Predicates } from 'aws-amplify'
 import { Todo } from './models'
 
 const AddTodoModal = ({ modalVisible, setModalVisible }: { modalVisible: boolean, setModalVisible: React.Dispatch<React.SetStateAction<boolean>> }) => {
@@ -63,11 +63,12 @@ const TodoList = () => {
 
     useEffect(() => {
         //query the initial todolist and subscribe to data updates
-        const subscription = DataStore.observeQuery(Todo).subscribe((snapshot) => {
+        const subscription = DataStore.observeQuery(Todo, Predicates.ALL).subscribe((snapshot) => {
             //isSynced can be used to show a loading spinner when the list is being loaded.
             const { items, isSynced } = snapshot
+            console.log(items, isSynced)
             setTodos(items)
-        })
+        });
         //unsubscribe to data updates when component is destroyed so that we don’t introduce a memory leak.
         return function cleanup() {
             subscription.unsubscribe()

@@ -7,13 +7,22 @@
     "defaultAuthType": {
       "mode": "API_KEY",
       "expirationTime": 365,
-      "apiKeyExpirationDate": "2023-04-05T11:36:58.951Z",
+      "apiKeyExpirationDate": "2023-04-06T12:20:26.398Z",
       "keyDescription": ""
     },
     "conflictResolution": {
       "defaultResolutionStrategy": {
         "type": "AUTOMERGE"
       }
-    }
+    },
+    "additionalAuthTypes": [
+      {
+        "mode": "AMAZON_COGNITO_USER_POOLS",
+        "cognitoUserPoolId": "authchatapp0b4b3621"
+      },
+      {
+        "mode": "AWS_IAM"
+      }
+    ]
   }
 }

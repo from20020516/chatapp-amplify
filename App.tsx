@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { Button, StyleSheet, Platform, Text, View } from 'react-native'
-import { Amplify, Auth, Hub } from 'aws-amplify'
+import { Amplify, Auth, AuthModeStrategyType, Hub } from 'aws-amplify'
 import { CognitoHostedUIIdentityProvider } from '@aws-amplify/auth'
 import awsconfig from './src/aws-exports'
 import Home from './src/Home'
@@ -11,6 +11,9 @@ Amplify.configure({
     ...awsconfig.oauth,
     redirectSignIn: `${window.location.origin}/`,
     redirectSignOut: `${window.location.origin}/`,
+  },
+  DataStore: {
+    authModeStrategyType: AuthModeStrategyType.MULTI_AUTH
   }
 })
 
