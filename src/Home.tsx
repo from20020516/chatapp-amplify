@@ -19,13 +19,16 @@ import { UserContext } from '../App'
 const window = Dimensions.get("window")
 const screen = Dimensions.get("screen")
 
-const timeoutMs = 30 * 1000
+const timeout = 10
 
 const Item = ({ item, deleteTodo }: { item: Todo, deleteTodo: (todo: Todo) => Promise<void> }) => {
+    const [count, setCount] = useState(timeout - Math.floor((Number(new Date()) - Number(new Date(item.createdAt!))) / 1000))
+
     useEffect(() => {
-        let timeoutId = setTimeout(() => deleteTodo(item), timeoutMs)
+        if (0 >= count) deleteTodo(item)
+        let timeoutId = setTimeout(() => setCount(count - 1), 1000)
         return () => clearTimeout(timeoutId)
-    }, [item.updatedAt])
+    }, [count, item.updatedAt])
 
     return (
         <Pressable
@@ -35,10 +38,10 @@ const Item = ({ item, deleteTodo }: { item: Todo, deleteTodo: (todo: Todo) => Pr
             <Image
                 style={{ width: 50, height: 50, marginRight: 10 }}
                 source={{ uri: 'https://reactnative.dev/img/tiny_logo.png' }}
+
             />
-            <Text>
-                <Text style={styles.todoHeading}>{item.description}</Text>
-            </Text>
+            <Text style={styles.todoHeading}>{item.description}</Text>
+            <Text style={styles.timer}>{count}</Text>
         </Pressable>
     )
 }
@@ -49,7 +52,7 @@ const TodoList = () => {
 
     useEffect(() => {
         const subscription = DataStore
-            .observeQuery(Todo, q => q.createdAt("ge", new Date(Date.now() - timeoutMs).toISOString()))
+            .observeQuery(Todo, q => q.createdAt("ge", new Date(Date.now() - timeout * 1000).toISOString()))
             .subscribe((snapshot) => {
                 //isSynced can be used to show a loading spinner when the list is being loaded.
                 const { items, isSynced } = snapshot
@@ -149,6 +152,11 @@ const styles = StyleSheet.create({
     todoHeading: {
         fontSize: 20,
         fontWeight: '600',
+    },
+    timer: {
+        marginLeft: 'auto',
+        textAlign: 'center',
+        color: 'grey'
     },
 })
 
