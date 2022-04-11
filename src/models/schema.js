@@ -10,13 +10,6 @@ export const schema = {
                     "isRequired": true,
                     "attributes": []
                 },
-                "name": {
-                    "name": "name",
-                    "isArray": false,
-                    "type": "String",
-                    "isRequired": true,
-                    "attributes": []
-                },
                 "description": {
                     "name": "description",
                     "isArray": false,
@@ -24,10 +17,10 @@ export const schema = {
                     "isRequired": false,
                     "attributes": []
                 },
-                "isComplete": {
-                    "name": "isComplete",
+                "owner": {
+                    "name": "owner",
                     "isArray": false,
-                    "type": "Boolean",
+                    "type": "String",
                     "isRequired": false,
                     "attributes": []
                 },
@@ -84,5 +77,5 @@ export const schema = {
     },
     "enums": {},
     "nonModels": {},
-    "version": "671e864603609644a01cbf06dd6096dc"
+    "version": "2469131ffa1eab2877bc1e82412b87ff"
 };
