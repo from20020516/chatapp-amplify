@@ -57,16 +57,13 @@ const App = () => {
     <UserContext.Provider value={user}>
       <View style={styles.container}>
         <View style={styles.headerContainer}>
-          <Text style={styles.headerTitle}>{user ? JSON.stringify(user) : 'None'}</Text>
-        </View>
-        {user ? (
-          <>
-            <Home />
+          {user ? (
             <Button title="Sign Out" onPress={() => Auth.signOut()} />
-          </>
-        ) : (
-          <Button title="Federated Sign In" onPress={() => Auth.federatedSignIn({ provider: CognitoHostedUIIdentityProvider.Google })} />
-        )}
+          ) : (
+            <Button title="Federated Sign In" onPress={() => Auth.federatedSignIn({ provider: CognitoHostedUIIdentityProvider.Google })} />
+          )}
+        </View>
+        {user && <Home />}
       </View>
     </UserContext.Provider>
   )
