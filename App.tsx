@@ -1,5 +1,5 @@
 import React, { createContext, useEffect, useState } from 'react'
-import { Button, StyleSheet, Platform, Text, View } from 'react-native'
+import { Button, StyleSheet, Platform, View } from 'react-native'
 import { Amplify, Auth, AuthModeStrategyType, DataStore, Hub } from 'aws-amplify'
 import { CognitoHostedUIIdentityProvider } from '@aws-amplify/auth'
 import awsconfig from './src/aws-exports'
@@ -51,6 +51,7 @@ const App = () => {
       }
     });
     (async () => setUser(await Auth.currentUserInfo()))()
+    return () => Hub.remove('auth', () => setUser(null))
   }, [])
 
   return (
@@ -60,7 +61,7 @@ const App = () => {
           {user ? (
             <Button title="Sign Out" onPress={() => Auth.signOut()} />
           ) : (
-            <Button title="Federated Sign In" onPress={() => Auth.federatedSignIn({ provider: CognitoHostedUIIdentityProvider.Google })} />
+            <Button title="Sign In with Google" onPress={() => Auth.federatedSignIn({ provider: CognitoHostedUIIdentityProvider.Google })} />
           )}
         </View>
         {user && <Home />}
