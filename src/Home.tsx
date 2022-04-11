@@ -1,24 +1,30 @@
-import React, { useContext, useState, useEffect } from 'react'
+import React, { useContext, useState, useEffect, useRef } from 'react'
 import {
+    Button,
+    Dimensions,
     FlatList,
+    Image,
     Pressable,
+    ScaledSize,
+    ScrollView,
     StyleSheet,
     Text,
     TextInput,
     View,
-    Image,
-    ScrollView,
-    Button,
 } from 'react-native'
 import { DataStore } from 'aws-amplify'
 import { Todo } from './models'
 import { UserContext } from '../App'
 
+const window = Dimensions.get("window")
+const screen = Dimensions.get("screen")
+
+const timeoutMs = 30 * 1000
+
 const Item = ({ item, deleteTodo }: { item: Todo, deleteTodo: (todo: Todo) => Promise<void> }) => {
     useEffect(() => {
-        /** delete in 60 second. */
-        // let timeoutId = setTimeout(() => deleteTodo(item), 60 * 1000)
-        // return () => clearTimeout(timeoutId)
+        let timeoutId = setTimeout(() => deleteTodo(item), timeoutMs)
+        return () => clearTimeout(timeoutId)
     }, [item.updatedAt])
 
     return (
@@ -42,13 +48,13 @@ const TodoList = () => {
     const [todos, setTodos] = useState<Todo[]>([])
 
     useEffect(() => {
-        //query the initial todolist and subscribe to data updates
-        const subscription = DataStore.observeQuery(Todo).subscribe((snapshot) => {
-            //isSynced can be used to show a loading spinner when the list is being loaded.
-            const { items, isSynced } = snapshot
-            setTodos(items)
-        });
-        //unsubscribe to data updates when component is destroyed so that we don’t introduce a memory leak.
+        const subscription = DataStore
+            .observeQuery(Todo, q => q.createdAt("ge", new Date(Date.now() - timeoutMs).toISOString()))
+            .subscribe((snapshot) => {
+                //isSynced can be used to show a loading spinner when the list is being loaded.
+                const { items, isSynced } = snapshot
+                setTodos(items)
+            })
         return () => subscription.unsubscribe()
     }, [])
 
@@ -72,33 +78,52 @@ const TodoList = () => {
 
 const Home = () => {
     const [description, setDescription] = useState('')
+    const [dimensions, setDimensions] = useState({ window, screen })
+
+    useEffect(() => {
+        const listener = ({ window, screen }: { window: ScaledSize, screen: ScaledSize }) => setDimensions({ window, screen })
+        Dimensions.addEventListener('change', listener)
+        return () => Dimensions.removeEventListener('change', listener)
+    }, [])
 
     const addTodo = async () => {
         await DataStore.save(new Todo({ description }))
         setDescription('')
     }
 
+    const scrollView = useRef<ScrollView>(null)
+
     return (
         <>
             <ScrollView
-                style={{
-                    // maxHeight: 800
+                ref={scrollView}
+                style={{ maxHeight: dimensions.window.height - 110 }}
+                onContentSizeChange={() => {
+                    console.log(true)
+                    scrollView.current?.scrollToEnd({ animated: true })
                 }}
             >
                 <TodoList />
             </ScrollView>
-            <View>
+            <View
+                style={{ height: 75 }}
+            >
                 <TextInput
                     onChangeText={setDescription}
+                    onSubmitEditing={addTodo}
                     placeholder="メッセージ"
                     style={{
+                        backgroundColor: 'lightgrey',
                         borderBottomWidth: 1,
-                        marginBottom: 16,
-                        padding: 8,
+                        height: 35,
+                        padding: 10,
                     }}
                     value={description}
                 />
-                <Button title="送信" onPress={addTodo} />
+                <Button
+                    title="送信"
+                    onPress={addTodo}
+                />
             </View>
         </>
     )
