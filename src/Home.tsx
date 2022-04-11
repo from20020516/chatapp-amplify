@@ -12,7 +12,8 @@ import {
     TextInput,
     View,
 } from 'react-native'
-import { DataStore } from 'aws-amplify'
+import { Auth, DataStore } from 'aws-amplify'
+import { CognitoHostedUIIdentityProvider } from '@aws-amplify/auth'
 import { Todo } from './models'
 import { UserContext } from '../App'
 
@@ -47,7 +48,6 @@ const Item = ({ item, deleteTodo }: { item: Todo, deleteTodo: (todo: Todo) => Pr
 }
 
 const TodoList = () => {
-    const user = useContext(UserContext)
     const [todos, setTodos] = useState<Todo[]>([])
 
     useEffect(() => {
@@ -62,7 +62,7 @@ const TodoList = () => {
     }, [])
 
     const deleteTodo = async (todo: Todo) => {
-        if (user?.username === todo.owner) await DataStore.delete(todo)
+        await DataStore.delete(todo)
     }
 
     const renderItem = ({ item }: { item: Todo }) => <Item
@@ -80,6 +80,7 @@ const TodoList = () => {
 }
 
 const Home = () => {
+    const user = useContext(UserContext)
     const [description, setDescription] = useState('')
     const [dimensions, setDimensions] = useState({ window, screen })
 
@@ -108,26 +109,35 @@ const Home = () => {
             >
                 <TodoList />
             </ScrollView>
-            <View
-                style={{ height: 75 }}
-            >
-                <TextInput
-                    onChangeText={setDescription}
-                    onSubmitEditing={addTodo}
-                    placeholder="メッセージ"
-                    style={{
-                        backgroundColor: 'lightgrey',
-                        borderBottomWidth: 1,
-                        height: 35,
-                        padding: 10,
-                    }}
-                    value={description}
-                />
-                <Button
-                    title="送信"
-                    onPress={addTodo}
-                />
-            </View>
+            {user ? (
+                <View
+                    style={{ height: 75 }}
+                >
+                    <TextInput
+                        onChangeText={setDescription}
+                        onSubmitEditing={addTodo}
+                        placeholder="メッセージ"
+                        style={{
+                            backgroundColor: 'lightgrey',
+                            borderBottomWidth: 1,
+                            height: 35,
+                            padding: 10,
+                        }}
+                        value={description}
+                    />
+                    <Button
+                        title="送信"
+                        onPress={addTodo}
+                    />
+                </View>
+            ) : (
+                <View
+                    style={{ height: 75 }}
+                >
+                    <Button title="Sign In with Google" onPress={() => Auth.federatedSignIn({ provider: CognitoHostedUIIdentityProvider.Google })} />
+                    <Text style={{ textAlign: 'center', padding: 10 }}>Copyright</Text>
+                </View>
+            )}
         </>
     )
 }

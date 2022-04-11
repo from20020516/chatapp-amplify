@@ -1,7 +1,6 @@
 import React, { createContext, useEffect, useState } from 'react'
-import { Button, StyleSheet, Platform, View } from 'react-native'
-import { Amplify, Auth, AuthModeStrategyType, DataStore, Hub } from 'aws-amplify'
-import { CognitoHostedUIIdentityProvider } from '@aws-amplify/auth'
+import { Button, StyleSheet, Platform, Text, View } from 'react-native'
+import { Amplify, Auth, AuthModeStrategyType, Hub } from 'aws-amplify'
 import awsconfig from './src/aws-exports'
 import Home from './src/Home'
 
@@ -33,23 +32,6 @@ const App = () => {
   const [user, setUser] = useState<IUser | null>(null)
 
   useEffect(() => {
-    Hub.listen('auth', async ({ payload: { event, data } }) => {
-      console.log(event, data)
-      switch (event) {
-        case 'signIn':
-        case 'cognitoHostedUI':
-          break
-        case 'signOut':
-        case 'oAuthSignOut':
-          await DataStore.clear()
-          setUser(null)
-          break
-        case 'signIn_failure':
-        case 'cognitoHostedUI_failure':
-          console.log('Sign in failure', data)
-          break
-      }
-    });
     (async () => setUser(await Auth.currentUserInfo()))()
     return () => Hub.remove('auth', () => setUser(null))
   }, [])
@@ -61,10 +43,17 @@ const App = () => {
           {user ? (
             <Button title="Sign Out" onPress={() => Auth.signOut()} />
           ) : (
-            <Button title="Sign In with Google" onPress={() => Auth.federatedSignIn({ provider: CognitoHostedUIIdentityProvider.Google })} />
+            <Text
+              style={{
+                color: '#fff',
+                fontWeight: '600',
+                padding: 10,
+                textAlign: 'center',
+              }}
+            >Flash⚡Chat</Text>
           )}
         </View>
-        {user && <Home />}
+        <Home />
       </View>
     </UserContext.Provider>
   )
