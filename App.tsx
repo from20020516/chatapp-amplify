@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react'
+import React, { createContext, useEffect, useState } from 'react'
 import { Button, StyleSheet, Platform, Text, View } from 'react-native'
-import { Amplify, Auth, AuthModeStrategyType, Hub } from 'aws-amplify'
+import { Amplify, Auth, AuthModeStrategyType, DataStore, Hub } from 'aws-amplify'
 import { CognitoHostedUIIdentityProvider } from '@aws-amplify/auth'
 import awsconfig from './src/aws-exports'
 import Home from './src/Home'
@@ -17,8 +17,20 @@ Amplify.configure({
   }
 })
 
+interface IUser {
+  id: string
+  username: string
+  attributes: {
+    email: string
+    email_verified: boolean
+    identities: string
+    sub: string
+  }
+}
+export const UserContext = createContext<IUser | null>(null)
+
 const App = () => {
-  const [user, setUser] = useState<any>(null)
+  const [user, setUser] = useState<IUser | null>(null)
 
   useEffect(() => {
     Hub.listen('auth', async ({ payload: { event, data } }) => {
@@ -26,9 +38,10 @@ const App = () => {
       switch (event) {
         case 'signIn':
         case 'cognitoHostedUI':
-          setUser(await getUser())
           break
         case 'signOut':
+        case 'oAuthSignOut':
+          await DataStore.clear()
           setUser(null)
           break
         case 'signIn_failure':
@@ -37,31 +50,25 @@ const App = () => {
           break
       }
     });
-    (async () => setUser(await getUser()))()
+    (async () => setUser(await Auth.currentUserInfo()))()
   }, [])
 
-  const getUser = async () => {
-    try {
-      return await Auth.currentAuthenticatedUser()
-    } catch (error) {
-      return console.error(error)
-    }
-  }
-
   return (
-    <View style={styles.container}>
-      <View style={styles.headerContainer}>
-        <Text style={styles.headerTitle}>User: {user ? JSON.stringify(user.attributes) : 'None'}</Text>
+    <UserContext.Provider value={user}>
+      <View style={styles.container}>
+        <View style={styles.headerContainer}>
+          <Text style={styles.headerTitle}>{user ? JSON.stringify(user) : 'None'}</Text>
+        </View>
+        {user ? (
+          <>
+            <Home />
+            <Button title="Sign Out" onPress={() => Auth.signOut()} />
+          </>
+        ) : (
+          <Button title="Federated Sign In" onPress={() => Auth.federatedSignIn({ provider: CognitoHostedUIIdentityProvider.Google })} />
+        )}
       </View>
-      {user ? (
-        <>
-          <Home />
-          <Button title="Sign Out" onPress={() => Auth.signOut()} />
-        </>
-      ) : (
-        <Button title="Federated Sign In" onPress={() => Auth.federatedSignIn({ provider: CognitoHostedUIIdentityProvider.Google })} />
-      )}
-    </View>
+    </UserContext.Provider>
   )
 }
 
