@@ -9,13 +9,13 @@ import {
     TextInput,
     View,
 } from 'react-native'
-import { DataStore } from 'aws-amplify'
+import { DataStore, Storage } from 'aws-amplify'
 import * as WebBrowser from 'expo-web-browser'
 import { Todo } from './models'
 import { DimensionContext, UserContext } from '../App'
 import styles, { stylesProps } from './styles'
 
-const timeout = 10
+const timeout = Number(process.env.TIMEOUT ?? 10)
 
 const Timer = ({ item }: { item: Todo }) => {
     const [count, setCount] = useState(timeout - Math.floor((Number(new Date()) - Number(new Date(item.createdAt!))) / 1000))
@@ -31,6 +31,11 @@ const Timer = ({ item }: { item: Todo }) => {
 
 const Item = memo(({ item }: { item: Todo }) => {
     const message = item.description!.split(/\s/)
+    const [image, setImage] = useState<string | null>(null)
+
+    useEffect(() => {
+        (async () => setImage(await Storage.get(item.owner!)))()
+    }, [])
 
     return (
         <Pressable
@@ -39,8 +44,7 @@ const Item = memo(({ item }: { item: Todo }) => {
         >
             <Image
                 style={{ width: 50, height: 50, marginRight: 10 }}
-                source={{ uri: 'https://reactnative.dev/img/tiny_logo.png' }}
-
+                source={{ uri: image ?? 'https://reactnative.dev/img/tiny_logo.png' }}
             />
             {message.map((text, index) => text.startsWith('http')
                 ? <Text key={index} onPress={() => WebBrowser.openBrowserAsync(text)} style={{ color: 'blue' }}>{text} </Text>

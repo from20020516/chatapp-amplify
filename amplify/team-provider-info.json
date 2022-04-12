@@ -13,7 +13,8 @@
     },
     "categories": {
       "auth": {
-        "chatapp0b4b3621": {}
+        "chatapp0b4b3621": {},
+        "true": {}
       }
     }
   }

@@ -31,7 +31,7 @@ export interface IUserAttributes extends UserAttributes {
   readonly phone_number_verified: boolean
   readonly identities: string
 }
-/** @see https://docs.amplify.aws/guides/authentication/managing-user-attributes/q/platform/js/ */
+/** https://docs.amplify.aws/guides/authentication/managing-user-attributes/q/platform/js/ */
 export interface UserAttributes {
   name?: string
   given_name?: string
@@ -52,8 +52,8 @@ export interface UserAttributes {
   updated_at?: string /** unix millis */
 }
 export interface IUser {
-  id: string
-  username: string
+  readonly id: string /** ap-northeast-1:9e346191-b339-4995-bab0-56c755e23842 */
+  readonly username: string /** google_114556556928521575351 */
   attributes: IUserAttributes
 }
 export const UserContext = createContext<IUser | null>(null)

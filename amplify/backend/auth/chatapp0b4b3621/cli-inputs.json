@@ -2,7 +2,7 @@
   "version": "1",
   "cognitoConfig": {
     "identityPoolName": "chatapp0b4b3621_identitypool_0b4b3621",
-    "allowUnauthenticatedIdentities": false,
+    "allowUnauthenticatedIdentities": true,
     "resourceNameTruncated": "chatap0b4b3621",
     "userPoolName": "chatapp0b4b3621_userpool_0b4b3621",
     "autoVerifiedAttributes": [
@@ -64,7 +64,6 @@
     },
     "breakCircularDependency": true,
     "dependsOn": [],
-    "hostedUIProviderCreds": "[{\"ProviderName\":\"Google\",\"client_id\":\"912508685422-bnkee2llgb6bdcs0omvtlvr2qe8i5pjn.apps.googleusercontent.com\",\"client_secret\":\"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\"}]",
     "oAuthMetadata": "{\"AllowedOAuthFlows\":[\"code\"],\"AllowedOAuthScopes\":[\"phone\",\"email\",\"openid\",\"profile\",\"aws.cognito.signin.user.admin\"],\"CallbackURLs\":[\"http://localhost:19006/\"],\"LogoutURLs\":[\"http://localhost:19006/\"]}"
   }
 }
