@@ -81,7 +81,7 @@ const Home = () => {
 
     const textInput = useRef<TextInput>(null)
     const addTodo = async () => {
-        await DataStore.save(new Todo({ description }))
+        if (description.length) await DataStore.save(new Todo({ description }))
         setDescription('')
         textInput.current?.focus()
     }
