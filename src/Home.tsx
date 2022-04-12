@@ -1,13 +1,10 @@
 import React, { useContext, useState, useEffect, useRef } from 'react'
 import {
     Button,
-    Dimensions,
     FlatList,
     Image,
     Pressable,
-    ScaledSize,
     ScrollView,
-    StyleSheet,
     Text,
     TextInput,
     View,
@@ -15,10 +12,8 @@ import {
 import { Auth, DataStore } from 'aws-amplify'
 import { CognitoHostedUIIdentityProvider } from '@aws-amplify/auth'
 import { Todo } from './models'
-import { UserContext } from '../App'
-
-const window = Dimensions.get("window")
-const screen = Dimensions.get("screen")
+import { DimensionContext, UserContext } from '../App'
+import styles, { stylesProps } from './styles'
 
 const timeout = 10
 
@@ -81,93 +76,66 @@ const TodoList = () => {
 
 const Home = () => {
     const user = useContext(UserContext)
+    const dimensions = useContext(DimensionContext)
     const [description, setDescription] = useState('')
-    const [dimensions, setDimensions] = useState({ window, screen })
 
-    useEffect(() => {
-        const listener = ({ window, screen }: { window: ScaledSize, screen: ScaledSize }) => setDimensions({ window, screen })
-        Dimensions.addEventListener('change', listener)
-        return () => Dimensions.removeEventListener('change', listener)
-    }, [])
-
+    const textInput = useRef<TextInput>(null)
     const addTodo = async () => {
         await DataStore.save(new Todo({ description }))
         setDescription('')
+        textInput.current?.focus()
     }
 
     const scrollView = useRef<ScrollView>(null)
+    const maxHeight =
+        dimensions!.window.height!
+        - Number(stylesProps.headerContainer.height)
+        - Number(stylesProps.footer.height)
 
     return (
         <>
             <ScrollView
                 ref={scrollView}
-                style={{ maxHeight: dimensions.window.height - 110 }}
-                onContentSizeChange={() => {
-                    console.log(true)
-                    scrollView.current?.scrollToEnd({ animated: true })
-                }}
+                style={{ maxHeight }}
+                onContentSizeChange={() => scrollView.current?.scrollToEnd({ animated: true })}
             >
                 <TodoList />
             </ScrollView>
-            {user ? (
-                <View
-                    style={{ height: 75 }}
-                >
-                    <TextInput
-                        onChangeText={setDescription}
-                        onSubmitEditing={addTodo}
-                        placeholder="メッセージ"
-                        style={{
-                            backgroundColor: 'lightgrey',
-                            borderBottomWidth: 1,
-                            height: 35,
-                            padding: 10,
-                        }}
-                        value={description}
-                    />
-                    <Button
-                        title="送信"
-                        onPress={addTodo}
-                    />
-                </View>
-            ) : (
-                <View
-                    style={{ height: 75 }}
-                >
-                    <Button title="Sign In with Google" onPress={() => Auth.federatedSignIn({ provider: CognitoHostedUIIdentityProvider.Google })} />
-                    <Text style={{ textAlign: 'center', padding: 10 }}>Copyright</Text>
-                </View>
-            )}
+            <View
+                style={styles.footer}
+            >
+                {user ? (
+                    <>
+                        <TextInput
+                            ref={textInput}
+                            onChangeText={setDescription}
+                            onSubmitEditing={addTodo}
+                            placeholder="メッセージ"
+                            style={{
+                                backgroundColor: 'lightgrey',
+                                borderBottomWidth: 1,
+                                height: 35,
+                                padding: 10,
+                            }}
+                            value={description}
+                        />
+                        <Button
+                            title="送信"
+                            onPress={addTodo}
+                        />
+                    </>
+                ) : (
+                    <>
+                        <Button
+                            title="Sign In with Google"
+                            onPress={() => Auth.federatedSignIn({ provider: CognitoHostedUIIdentityProvider.Google })}
+                        />
+                        <Text style={{ textAlign: 'center', padding: 10 }}>Copyright</Text>
+                    </>
+                )}
+            </View>
         </>
     )
 }
-
-const styles = StyleSheet.create({
-    todoContainer: {
-        alignItems: 'center',
-        backgroundColor: '#fff',
-        borderRadius: 2,
-        elevation: 4,
-        flexDirection: 'row',
-        marginHorizontal: 8,
-        marginVertical: 4,
-        padding: 8,
-        shadowOffset: {
-            height: 1,
-            width: 1,
-        },
-        shadowOpacity: 0.3,
-        shadowRadius: 2,
-    },
-    todoHeading: {
-        fontSize: 20,
-        fontWeight: '600',
-    },
-    timer: {
-        marginLeft: 'auto',
-        textAlign: 'center',
-        color: 'grey'
-    },
-})
 
 export default Home

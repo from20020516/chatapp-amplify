@@ -1,20 +1,24 @@
 import React, { createContext, useEffect, useState } from 'react'
-import { Button, StyleSheet, Platform, Text, View } from 'react-native'
+import { Button, Text, View, Dimensions, ScaledSize } from 'react-native'
 import { Amplify, Auth, AuthModeStrategyType, Hub } from 'aws-amplify'
 import awsconfig from './src/aws-exports'
 import Home from './src/Home'
+import styles from './src/styles'
 
 Amplify.configure({
   ...awsconfig,
   oauth: {
     ...awsconfig.oauth,
-    redirectSignIn: `${window.location.origin}/`,
-    redirectSignOut: `${window.location.origin}/`,
+    redirectSignIn: `${location.origin}/`,
+    redirectSignOut: `${location.origin}/`,
   },
   DataStore: {
     authModeStrategyType: AuthModeStrategyType.MULTI_AUTH
   }
 })
+
+const window = Dimensions.get("window")
+const screen = Dimensions.get("screen")
 
 interface IUser {
   id: string
@@ -28,8 +32,21 @@ interface IUser {
 }
 export const UserContext = createContext<IUser | null>(null)
 
+interface IDimensions {
+  window: ScaledSize
+  screen: ScaledSize
+}
+export const DimensionContext = createContext<IDimensions | null>(null)
+
 const App = () => {
   const [user, setUser] = useState<IUser | null>(null)
+  const [dimensions, setDimensions] = useState({ window, screen })
+
+  useEffect(() => {
+    const dimensionsListener = ({ window, screen }: IDimensions) => setDimensions({ window, screen })
+    Dimensions.addEventListener('change', dimensionsListener)
+    return () => Dimensions.removeEventListener('change', dimensionsListener)
+  }, [])
 
   useEffect(() => {
     (async () => setUser(await Auth.currentUserInfo()))()
@@ -38,43 +55,22 @@ const App = () => {
 
   return (
     <UserContext.Provider value={user}>
-      <View style={styles.container}>
-        <View style={styles.headerContainer}>
-          {user ? (
-            <Button title="Sign Out" onPress={() => Auth.signOut()} />
-          ) : (
-            <Text
-              style={{
-                color: '#fff',
-                fontWeight: '600',
-                padding: 10,
-                textAlign: 'center',
-              }}
-            >Flash⚡Chat</Text>
-          )}
+      <DimensionContext.Provider value={dimensions}>
+        <View style={styles.container}>
+          <View style={styles.headerContainer}>
+            {user ? (
+              <Button title="Sign Out" onPress={() => Auth.signOut()} />
+            ) : (
+              <Text
+                style={styles.headerTitle}
+              >Flash⚡Chat</Text>
+            )}
+          </View>
+          <Home />
         </View>
-        <Home />
-      </View>
+      </DimensionContext.Provider>
     </UserContext.Provider>
   )
 }
-
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: '#fff',
-    flex: 1,
-  },
-  headerContainer: {
-    backgroundColor: '#4696ec',
-    paddingTop: Platform.OS === 'ios' ? 44 : 0,
-  },
-  headerTitle: {
-    color: '#fff',
-    fontSize: 20,
-    fontWeight: '600',
-    paddingVertical: 16,
-    textAlign: 'center',
-  },
-})
 
 export default App
