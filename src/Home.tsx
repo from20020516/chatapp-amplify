@@ -9,8 +9,7 @@ import {
     TextInput,
     View,
 } from 'react-native'
-import { Auth, DataStore } from 'aws-amplify'
-import { CognitoHostedUIIdentityProvider } from '@aws-amplify/auth'
+import { DataStore } from 'aws-amplify'
 import * as WebBrowser from 'expo-web-browser'
 import { Todo } from './models'
 import { DimensionContext, UserContext } from '../App'
@@ -104,39 +103,29 @@ const Home = () => {
             >
                 <TodoList />
             </ScrollView>
-            <View
-                style={styles.footer}
-            >
-                {user ? (
-                    <>
-                        <TextInput
-                            ref={textInput}
-                            onChangeText={setDescription}
-                            onSubmitEditing={addTodo}
-                            placeholder="メッセージ"
-                            style={{
-                                backgroundColor: 'lightgrey',
-                                borderBottomWidth: 1,
-                                height: 35,
-                                padding: 10,
-                            }}
-                            value={description}
-                        />
-                        <Button
-                            title="送信"
-                            onPress={addTodo}
-                        />
-                    </>
-                ) : (
-                    <>
-                        <Button
-                            title="Sign In with Google"
-                            onPress={() => Auth.federatedSignIn({ provider: CognitoHostedUIIdentityProvider.Google })}
-                        />
-                        <Text style={{ textAlign: 'center', padding: 10 }}>Copyright</Text>
-                    </>
-                )}
-            </View>
+            {user && (
+                <View
+                    style={styles.footer}
+                >
+                    <TextInput
+                        ref={textInput}
+                        onChangeText={setDescription}
+                        onSubmitEditing={addTodo}
+                        placeholder="メッセージ"
+                        style={{
+                            backgroundColor: 'lightgrey',
+                            borderBottomWidth: 1,
+                            height: 35,
+                            padding: 10,
+                        }}
+                        value={description}
+                    />
+                    <Button
+                        title="送信"
+                        onPress={addTodo}
+                    />
+                </View>
+            )}
         </>
     )
 }

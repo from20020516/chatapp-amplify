@@ -1,8 +1,12 @@
 import React, { createContext, useEffect, useState } from 'react'
+import { NavigationContainer } from '@react-navigation/native'
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
 import { Button, Text, View, Dimensions, ScaledSize } from 'react-native'
 import { Amplify, Auth, AuthModeStrategyType, Hub } from 'aws-amplify'
+import { CognitoHostedUIIdentityProvider } from '@aws-amplify/auth'
 import awsconfig from './src/aws-exports'
 import Home from './src/Home'
+import Profile from './src/Profile'
 import styles from './src/styles'
 
 Amplify.configure({
@@ -19,16 +23,38 @@ Amplify.configure({
 
 const window = Dimensions.get("window")
 const screen = Dimensions.get("screen")
+const Tab = createBottomTabNavigator()
 
-interface IUser {
+export interface IUserAttributes extends UserAttributes {
+  readonly sub: string
+  readonly email_verified: boolean
+  readonly phone_number_verified: boolean
+  readonly identities: string
+}
+/** @see https://docs.amplify.aws/guides/authentication/managing-user-attributes/q/platform/js/ */
+export interface UserAttributes {
+  name?: string
+  given_name?: string
+  family_name?: string
+  middle_name?: string
+  nickname?: string
+  preferred_username?: string
+  profile?: string
+  picture?: string
+  website?: string
+  email?: string
+  gender?: string
+  birthdate?: string
+  zoneinfo?: string
+  locale?: string
+  phone_number?: string
+  address?: string
+  updated_at?: string /** unix millis */
+}
+export interface IUser {
   id: string
   username: string
-  attributes: {
-    email: string
-    email_verified: boolean
-    identities: string
-    sub: string
-  }
+  attributes: IUserAttributes
 }
 export const UserContext = createContext<IUser | null>(null)
 
@@ -49,6 +75,19 @@ const App = () => {
   }, [])
 
   useEffect(() => {
+    /** https://docs.amplify.aws/guides/authentication/listening-for-auth-events/q/platform/js/ */
+    Hub.listen('auth', async ({ payload: { event, data } }) => {
+      switch (event) {
+        case 'tokenRefresh': /** when update user */
+          setUser(await Auth.currentUserInfo())
+          break
+        case 'signOut':
+          setUser(null)
+          break
+        default:
+          console.log(event, data)
+      }
+    });
     (async () => setUser(await Auth.currentUserInfo()))()
     return () => Hub.remove('auth', () => setUser(null))
   }, [])
@@ -57,16 +96,26 @@ const App = () => {
     <UserContext.Provider value={user}>
       <DimensionContext.Provider value={dimensions}>
         <View style={styles.container}>
-          <View style={styles.headerContainer}>
+          <NavigationContainer>
             {user ? (
-              <Button title="Sign Out" onPress={() => Auth.signOut()} />
+              <Tab.Navigator>
+                <Tab.Screen name="Home" component={Home} />
+                <Tab.Screen name="Profile" component={Profile} />
+              </Tab.Navigator>
             ) : (
-              <Text
-                style={styles.headerTitle}
-              >Flash⚡Chat</Text>
+              <>
+                <View style={styles.headerContainer}>
+                  <Text style={styles.headerTitle}>Flash⚡Chat</Text>
+                </View>
+                <Home />
+                <Button
+                  title="Sign In with Google"
+                  onPress={() => Auth.federatedSignIn({ provider: CognitoHostedUIIdentityProvider.Google })}
+                />
+                <Text style={{ textAlign: 'center', padding: 10 }}>Copyright</Text>
+              </>
             )}
-          </View>
-          <Home />
+          </NavigationContainer>
         </View>
       </DimensionContext.Provider>
     </UserContext.Provider>

@@ -45,6 +45,12 @@ export const stylesProps: StyleSheet.NamedStyles<{ [key: string]: ViewStyle | Te
     footer: {
         height: 75,
     },
+    input: {
+        height: 40,
+        margin: 12,
+        borderBottomWidth: 1,
+        padding: 10,
+    }
 }
 
 export default StyleSheet.create(
