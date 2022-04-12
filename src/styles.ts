@@ -43,7 +43,20 @@ export const stylesProps: StyleSheet.NamedStyles<{ [key: string]: ViewStyle | Te
         color: 'grey'
     },
     footer: {
-        height: 75
+        height: 75,
     },
 }
-export default StyleSheet.create(stylesProps)
+
+export default StyleSheet.create(
+    process.env.NODE_ENV === 'production'
+        ? stylesProps
+        : Object.entries(stylesProps)
+            .reduce((prev, [key, value]) => ({
+                ...prev, [key]: {
+                    ...value,
+                    outlineColor: 'red',
+                    outlineStyle: 'dashed',
+                    outlineWidth: 1,
+                }
+            }), {})
+)
