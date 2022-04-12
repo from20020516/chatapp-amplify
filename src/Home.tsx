@@ -1,4 +1,4 @@
-import React, { useContext, useState, useEffect, useRef } from 'react'
+import React, { useContext, useState, useEffect, useRef, memo } from 'react'
 import {
     Button,
     FlatList,
@@ -11,24 +11,31 @@ import {
 } from 'react-native'
 import { Auth, DataStore } from 'aws-amplify'
 import { CognitoHostedUIIdentityProvider } from '@aws-amplify/auth'
+import * as WebBrowser from 'expo-web-browser'
 import { Todo } from './models'
 import { DimensionContext, UserContext } from '../App'
 import styles, { stylesProps } from './styles'
 
 const timeout = 10
 
-const Item = ({ item, deleteTodo }: { item: Todo, deleteTodo: (todo: Todo) => Promise<void> }) => {
+const Timer = ({ item }: { item: Todo }) => {
     const [count, setCount] = useState(timeout - Math.floor((Number(new Date()) - Number(new Date(item.createdAt!))) / 1000))
 
     useEffect(() => {
-        if (0 >= count) deleteTodo(item)
+        if (0 >= count) DataStore.delete(item)
         let timeoutId = setTimeout(() => setCount(count - 1), 1000)
         return () => clearTimeout(timeoutId)
     }, [count, item.updatedAt])
 
+    return (<Text style={styles.timer}>{count}</Text>)
+}
+
+const Item = memo(({ item }: { item: Todo }) => {
+    const message = item.description!.split(/\s/)
+
     return (
         <Pressable
-            onLongPress={() => deleteTodo(item)}
+            onLongPress={() => DataStore.delete(item)}
             style={styles.todoContainer}
         >
             <Image
@@ -36,13 +43,16 @@ const Item = ({ item, deleteTodo }: { item: Todo, deleteTodo: (todo: Todo) => Pr
                 source={{ uri: 'https://reactnative.dev/img/tiny_logo.png' }}
 
             />
-            <Text style={styles.todoHeading}>{item.description}</Text>
-            <Text style={styles.timer}>{count}</Text>
+            {message.map((text, index) => text.startsWith('http')
+                ? <Text key={index} onPress={() => WebBrowser.openBrowserAsync(text)} style={{ color: 'blue' }}>{text} </Text>
+                : <Text key={index}>{text} </Text>
+            )}
+            <Timer item={item} />
         </Pressable>
     )
-}
+})
 
-const TodoList = () => {
+const TodoList = memo(() => {
     const [todos, setTodos] = useState<Todo[]>([])
 
     useEffect(() => {
@@ -56,14 +66,7 @@ const TodoList = () => {
         return () => subscription.unsubscribe()
     }, [])
 
-    const deleteTodo = async (todo: Todo) => {
-        await DataStore.delete(todo)
-    }
-
-    const renderItem = ({ item }: { item: Todo }) => <Item
-        item={item}
-        deleteTodo={deleteTodo}
-    />
+    const renderItem = ({ item }: { item: Todo }) => <Item item={item} />
 
     return (
         <FlatList
@@ -72,7 +75,7 @@ const TodoList = () => {
             renderItem={renderItem}
         />
     )
-}
+})
 
 const Home = () => {
     const user = useContext(UserContext)
