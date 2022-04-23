@@ -10,12 +10,13 @@ import {
     View,
 } from 'react-native'
 import { DataStore, Storage } from 'aws-amplify'
+import Constants from 'expo-constants'
 import * as WebBrowser from 'expo-web-browser'
 import { Todo } from './models'
 import { DimensionContext, UserContext } from '../App'
 import styles, { stylesProps } from './styles'
 
-const timeout = Number(process.env.TIMEOUT ?? 10)
+const timeout = Number(Constants.manifest?.extra?.timeout ?? 10)
 
 const Timer = ({ item }: { item: Todo }) => {
     const [count, setCount] = useState(timeout - Math.floor((Number(new Date()) - Number(new Date(item.createdAt!))) / 1000))
