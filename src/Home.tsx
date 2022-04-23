@@ -10,12 +10,13 @@ import {
     View,
 } from 'react-native'
 import { DataStore, Storage } from 'aws-amplify'
+import Constants from 'expo-constants'
 import * as WebBrowser from 'expo-web-browser'
 import { Todo } from './models'
 import { DimensionContext, UserContext } from '../App'
 import styles, { stylesProps } from './styles'
 
-const timeout = Number(process.env.TIMEOUT ?? 10)
+const timeout = Number(Constants.manifest?.extra?.timeout ?? 10)
 
 const Timer = ({ item }: { item: Todo }) => {
     const [count, setCount] = useState(timeout - Math.floor((Number(new Date()) - Number(new Date(item.createdAt!))) / 1000))
@@ -30,7 +31,7 @@ const Timer = ({ item }: { item: Todo }) => {
 }
 
 const Item = memo(({ item }: { item: Todo }) => {
-    const message = item.description!.split(/\s/)
+    const message = item.description?.split(/\s/) ?? []
     const [image, setImage] = useState<string | null>(null)
 
     useEffect(() => {
@@ -62,11 +63,13 @@ const TodoList = memo(() => {
         const subscription = DataStore
             .observeQuery(Todo, q => q.createdAt("ge", new Date(Date.now() - timeout * 1000).toISOString()))
             .subscribe((snapshot) => {
-                //isSynced can be used to show a loading spinner when the list is being loaded.
                 const { items, isSynced } = snapshot
-                setTodos(items)
+                console.log(isSynced, items)
+                isSynced && setTodos(items)
             })
-        return () => subscription.unsubscribe()
+        return () => {
+            subscription.unsubscribe()
+        }
     }, [])
 
     const renderItem = ({ item }: { item: Todo }) => <Item item={item} />
