@@ -77,15 +77,17 @@ const App = () => {
   useEffect(() => {
     /** https://docs.amplify.aws/guides/authentication/listening-for-auth-events/q/platform/js/ */
     Hub.listen('auth', async ({ payload: { event, data } }) => {
+      console.log(event)
       switch (event) {
         case 'tokenRefresh': /** when update user */
           setUser(await Auth.currentUserInfo())
           break
         case 'signOut':
+        case 'oAuthSignOut':
+          await DataStore.clear()
           setUser(null)
           break
         default:
-          console.log(event, data)
       }
     });
     (async () => setUser(await Auth.currentUserInfo()))()
