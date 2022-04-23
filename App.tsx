@@ -1,8 +1,8 @@
 import React, { createContext, useEffect, useState } from 'react'
 import { NavigationContainer } from '@react-navigation/native'
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
-import { Button, Text, View, Dimensions, ScaledSize } from 'react-native'
-import { Amplify, Auth, AuthModeStrategyType, Hub } from 'aws-amplify'
+import { createBottomTabNavigator, BottomTabBarButtonProps } from '@react-navigation/bottom-tabs'
+import { View, Dimensions, ScaledSize, Image, TouchableOpacity, TouchableWithoutFeedback } from 'react-native'
+import { Amplify, Auth, AuthModeStrategyType, DataStore, Hub } from 'aws-amplify'
 import { CognitoHostedUIIdentityProvider } from '@aws-amplify/auth'
 import awsconfig from './src/aws-exports'
 import Home from './src/Home'
@@ -97,29 +97,47 @@ const App = () => {
       <DimensionContext.Provider value={dimensions}>
         <View style={styles.container}>
           <NavigationContainer>
-            {user ? (
-              <Tab.Navigator>
-                <Tab.Screen name="Home" component={Home} />
-                <Tab.Screen name="Profile" component={Profile} />
-              </Tab.Navigator>
-            ) : (
-              <>
-                <View style={styles.headerContainer}>
-                  <Text style={styles.headerTitle}>Flash⚡Chat</Text>
-                </View>
-                <Home />
-                <Button
-                  title="Sign In with Google"
-                  onPress={() => Auth.federatedSignIn({ provider: CognitoHostedUIIdentityProvider.Google })}
-                />
-                <Text style={{ textAlign: 'center', padding: 10 }}>Copyright</Text>
-              </>
-            )}
+            <Tab.Navigator>
+              <Tab.Screen
+                name="Home"
+                component={Home}
+                options={{
+                  tabBarStyle: {
+                    alignItems: user ? 'stretch' : 'center',
+                  },
+                  tabBarLabel: 'Home',
+                  tabBarButton: user ? TabBarButton : LoginButton
+                }} />
+              {user && <Tab.Screen name="Profile" component={Profile} />}
+            </Tab.Navigator>
           </NavigationContainer>
         </View>
       </DimensionContext.Provider>
     </UserContext.Provider>
   )
 }
+
+const TabBarButton = ({ children, onPress, ...restProps }: BottomTabBarButtonProps) =>
+  <TouchableWithoutFeedback
+    onPress={(e) => onPress?.(e)}
+    {...restProps}
+  >
+    <View style={{
+      width: '50%',
+    }}>
+      {children}
+    </View>
+  </TouchableWithoutFeedback>
+
+const LoginButton = () =>
+  <TouchableOpacity
+    onPress={() => Auth.federatedSignIn({ provider: CognitoHostedUIIdentityProvider.Google })}
+  >
+    <Image
+      source={require('./assets/images/btn_google_signin_light_normal_web.png')}
+      style={{ height: 46, width: 191 }}
+    />
+  </TouchableOpacity>
+
 
 export default App
