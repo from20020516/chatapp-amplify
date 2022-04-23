@@ -40,9 +40,6 @@ const config: ExpoConfig = {
                 action: "android.intent.action.MAIN",
                 category: [
                     "android.intent.category.LAUNCHER",
-                    // "android.intent.category.HOME",
-                    // "android.intent.category.DEFAULT",
-                    "com.google.android.glass.category.DIRECTORY"
                 ],
             }
         ],
@@ -52,9 +49,6 @@ const config: ExpoConfig = {
             "android.permission.WRITE_EXTERNAL_STORAGE",
             "android.permission.RECORD_AUDIO"
         ],
-        // versionCode: 27,
-        // runtimeVersion: "27",
-
         package: "com.from20020516.chatapp"
     },
     web: {
